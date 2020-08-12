@@ -100,7 +100,7 @@ func main() {
           // only valid properties are added to list
           if p.IsValid() { 
             duplicate := p.dupeCheck(properties)
-
+                        
             if duplicate == 0 {
               properties = append(properties, p)
             } else {
@@ -115,7 +115,7 @@ func main() {
       fmt.Println(p.PropertyInfo())
     }
 
-    fmt.Printf("\nTotal properties: %d", len(properties))
+    fmt.Printf("\nTotal property records: %d", len(properties))
 
     if err := scanner.Err(); err != nil {
         log.Fatal(err)
