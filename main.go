@@ -58,7 +58,7 @@ func (p Property) IsValid() bool {
 // Assumed that didn't include the 'town' field, but they come out
 //   the same with/without, so didn't worry about it.
 func (p Property) Equals(p2 Property) bool {
-  return p.address == p2.address && 
+  return strings.ToUpper(p.address) == strings.ToUpper(p2.address) && 
     p.value_date == p2.value_date
 }
 
