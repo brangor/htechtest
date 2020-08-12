@@ -95,15 +95,15 @@ func PretentiousFilter(properties []Property) []Property {
   for _, p := range properties {
 
     matched, err := regexp.MatchString(`(AVE|CRES|PL).*`,       strings.ToUpper(p.address))
-  
+
     if err == nil {
-  
+
       if matched == false {
         FilteredList = append(FilteredList, p)
       } else {
-        continue 
+        continue
       }
-  
+
     }
   }
   return FilteredList
@@ -148,31 +148,35 @@ func main() {
           // only valid properties are added to list
           if p.IsValid() {
             duplicate := p.dupeCheck(properties)
-
-            if duplicate == 0 {
-              properties = append(properties, p)
+            // Test 3 - no instances of duplicate entered at all
+            // Removing found duplicates
+            if duplicate != 0 {
+              //replacing property at index `duplicate` with the one at the end
+              properties[duplicate] = properties[len(properties)-1]
+              // then slicing the array to just before the last element
+              properties = properties[:len(properties)-1]
             } else {
-              continue
+              properties = append(properties, p)
             }
           }
         }
     }
-    
+
     // Test 4 - Filtering
     var FilteredProperties []Property
     FilteredProperties = MinCostFilter(properties, 40000)
     FilteredProperties = PretentiousFilter(FilteredProperties)
     FilteredProperties = NthRecordFilter(FilteredProperties, 10)
-    
+
     fmt.Println("Filtered Properties List:")
 
     for _, p := range FilteredProperties {
       fmt.Println(p.PropertyInfo())
     }
-    
+
     fmt.Printf("\n# Properties (unfiltered): %d", len(properties))
     fmt.Printf("\n# Properties (filtered): %d", len(FilteredProperties))
-    
+
 
     if err := scanner.Err(); err != nil {
         log.Fatal(err)
