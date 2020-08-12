@@ -103,7 +103,9 @@ func main() {
             // Test 3 - no instances of duplicate entered at all
             // Removing found duplicates
             if duplicate != 0 {
+              //replacing property at index `duplicate` with the one at the end
               properties[duplicate] = properties[len(properties)-1]
+              // then slicing the array to just before the last element
               properties = properties[:len(properties)-1]
             } else {
               properties = append(properties, p)
