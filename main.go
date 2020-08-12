@@ -7,6 +7,7 @@ import (
     "os"
     "strings"
     "strconv"
+    "regexp"
 )
 
 const INPUT_LOCATION = "./properties.txt"
@@ -58,7 +59,7 @@ func (p Property) IsValid() bool {
 // Assumed that didn't include the 'town' field, but they come out
 //   the same with/without, so didn't worry about it.
 func (p Property) Equals(p2 Property) bool {
-  return p.address == p2.address &&
+  return strings.ToUpper(p.address) == strings.ToUpper(p2.address) &&
     p.value_date == p2.value_date
 }
 
@@ -76,24 +77,33 @@ func (p Property) dupeCheck(properties []Property) int {
 // Test 4.1 - Filtering out cheap properties
 // Takes lower limit and returns an array of properties at or above
 //  that value
-func (properties []Property) MinCostFilter(min int) *[]Property {
-  var FilteredList *[]Property
+func MinCostFilter(properties []Property, min int) []Property {
+  var FilteredList []Property
   for _, p := range properties {
     if p.value >= min {
-      FilteredList = append(FilteredList, &p)
+      FilteredList = append(FilteredList, p)
     }
   }
-
   return FilteredList
 }
 
 // Test 4.2 - Filtering out pretentious properties
 // Removes properties from list whose addresses include AVE, CRES, or PL
-func (properties []Property) PretentiousFilter() *[]Property {
-  var FilteredList *[]Property
+func PretentiousFilter(properties []Property) []Property {
+  var FilteredList []Property
+
   for _, p := range properties {
-    if p.address.include("AVE") {
-      FilteredList = append(FilteredList, &p)
+
+    matched, err := regexp.MatchString(`(AVE|CRES|PL).*`,       strings.ToUpper(p.address))
+  
+    if err == nil {
+  
+      if matched == false {
+        FilteredList = append(FilteredList, p)
+      } else {
+        continue 
+      }
+  
     }
   }
   return FilteredList
@@ -101,11 +111,11 @@ func (properties []Property) PretentiousFilter() *[]Property {
 
 // Test 4.3 - Filtering out every 10th Property
 // Removes every 10th property from list
-func (properties []Property) PretentiousFilter() *[]Property {
-  var FilteredList *[]Property
+func NthRecordFilter(properties []Property, n int) []Property {
+  var FilteredList []Property
   for i, p := range properties {
-    if i % 10 != 0 {
-      FilteredList = append(FilteredList, &p)
+    if i % n != 0 {
+      FilteredList = append(FilteredList, p)
     }
   }
   return FilteredList
@@ -142,18 +152,27 @@ func main() {
             if duplicate == 0 {
               properties = append(properties, p)
             } else {
-              //Test 2 - keeping the 'first encountered record'
               continue
             }
           }
         }
     }
+    
+    // Test 4 - Filtering
+    var FilteredProperties []Property
+    FilteredProperties = MinCostFilter(properties, 40000)
+    FilteredProperties = PretentiousFilter(FilteredProperties)
+    FilteredProperties = NthRecordFilter(FilteredProperties, 10)
+    
+    fmt.Println("Filtered Properties List:")
 
-    for _, p := range properties {
+    for _, p := range FilteredProperties {
       fmt.Println(p.PropertyInfo())
     }
-
-    fmt.Printf("\nTotal properties: %d", len(properties))
+    
+    fmt.Printf("\n# Properties (unfiltered): %d", len(properties))
+    fmt.Printf("\n# Properties (filtered): %d", len(FilteredProperties))
+    
 
     if err := scanner.Err(); err != nil {
         log.Fatal(err)
