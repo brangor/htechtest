@@ -9,7 +9,7 @@ import (
     "strconv"
 )
 
-const INPUT_LOCATION = "./properties.txt" 
+const INPUT_LOCATION = "./properties.txt"
 
 type Property struct {
   id          int
@@ -26,10 +26,10 @@ func newProperty(list []string) Property {
     town: list[2],
     value_date: list[3],
   }
-  
+
   id,err_id := strconv.Atoi(list[0])
   value,err_value := strconv.Atoi(list[4])
-  
+
   if err_id == nil && err_value == nil {
     p.id = id
     p.value = value
@@ -37,13 +37,13 @@ func newProperty(list []string) Property {
     p.id = -1
   }
   return p
-} 
+}
 
 // Pretty output for property struct
 func (p Property) PropertyInfo() string {
   fmt.Printf("--ID: %d----------------------------", p.id)
 	fmt.Printf("\nAddress: %s, %s", p.address, p.town)
-	fmt.Printf("\nValue: $%d - Date: %s", p.value, p.value_date)	
+	fmt.Printf("\nValue: $%d - Date: %s", p.value, p.value_date)
   return ""
 }
 
@@ -58,19 +58,57 @@ func (p Property) IsValid() bool {
 // Assumed that didn't include the 'town' field, but they come out
 //   the same with/without, so didn't worry about it.
 func (p Property) Equals(p2 Property) bool {
-  return p.address == p2.address && 
+  return p.address == p2.address &&
     p.value_date == p2.value_date
 }
 
-// Checks property list against this property, returns 
+// Checks property list against this property, returns
 //   index of first duplicate property found, or 0 if none
 func (p Property) dupeCheck(properties []Property) int {
   for index, prop := range properties {
     if prop.Equals(p) {
        return index
     }
-  } 
+  }
   return 0
+}
+
+// Test 4.1 - Filtering out cheap properties
+// Takes lower limit and returns an array of properties at or above
+//  that value
+func (properties []Property) MinCostFilter(min int) *[]Property {
+  var FilteredList *[]Property
+  for _, p := range properties {
+    if p.value >= min {
+      FilteredList = append(FilteredList, &p)
+    }
+  }
+
+  return FilteredList
+}
+
+// Test 4.2 - Filtering out pretentious properties
+// Removes properties from list whose addresses include AVE, CRES, or PL
+func (properties []Property) PretentiousFilter() *[]Property {
+  var FilteredList *[]Property
+  for _, p := range properties {
+    if p.address.include("AVE") {
+      FilteredList = append(FilteredList, &p)
+    }
+  }
+  return FilteredList
+}
+
+// Test 4.3 - Filtering out every 10th Property
+// Removes every 10th property from list
+func (properties []Property) PretentiousFilter() *[]Property {
+  var FilteredList *[]Property
+  for i, p := range properties {
+    if i % 10 != 0 {
+      FilteredList = append(FilteredList, &p)
+    }
+  }
+  return FilteredList
 }
 
 func main() {
@@ -89,22 +127,22 @@ func main() {
     for scanner.Scan() {
         line := scanner.Text()
 
-        // Each set of data contained on a line 
+        // Each set of data contained on a line
         //  w/ tab-sep'd fields
         property_data := strings.Split(line, "\t")
 
         // Looking for lines with five tab-sep'd fields
         if len(property_data) == 5 {
           p := newProperty(property_data)
-          
+
           // only valid properties are added to list
-          if p.IsValid() { 
+          if p.IsValid() {
             duplicate := p.dupeCheck(properties)
-            
+
             if duplicate == 0 {
               properties = append(properties, p)
             } else {
-              //Test 2 - keeping the 'first encountered record' 
+              //Test 2 - keeping the 'first encountered record'
               continue
             }
           }
