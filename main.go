@@ -78,6 +78,7 @@ func (p Property) dupeCheck(properties []Property) int {
 // Takes lower limit and returns an array of properties at or above
 //  that value
 func MinCostFilter(properties []Property, min int) []Property {
+
 	var FilteredList []Property
 	for _, p := range properties {
 		if p.value >= min {
@@ -90,7 +91,8 @@ func MinCostFilter(properties []Property, min int) []Property {
 // Test 4.2 - Filtering out pretentious properties
 // Removes properties from list whose addresses include AVE, CRES, or PL
 func PretentiousFilter(properties []Property) []Property {
-	var FilteredList []Property
+
+  var FilteredList []Property
 
 	for _, p := range properties {
 
@@ -106,18 +108,21 @@ func PretentiousFilter(properties []Property) []Property {
 
 		}
 	}
+
 	return FilteredList
 }
 
 // Test 4.3 - Filtering out every 10th Property
 // Removes every 10th property from list
 func NthRecordFilter(properties []Property, n int) []Property {
+
 	var FilteredList []Property
 	for i, p := range properties {
 		if i%n != 0 {
 			FilteredList = append(FilteredList, p)
 		}
 	}
+
 	return FilteredList
 }
 
@@ -127,6 +132,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
@@ -162,43 +168,44 @@ func main() {
 		}
 	}
 	// Test 4 - Extra Credit - running four goroutines concurrently
-
+  
+  var PropBuffer = make(chan []Property)
+  
+  // Splitting array into fourths
 	TotalProps := len(properties)
 
-	var Props1, Props2, Props3, Props4 []Property
-
+	var Props [4][]Property
+  
 	for i, p := range properties {
-		if i < TotalProps/4 {
-			Props1 = append(Props1, p)
+    var PropsIndex int
+    if i < TotalProps/4 {
+			PropsIndex = 0
 		} else if i < TotalProps/2 {
-			Props1 = append(Props2, p)
+			PropsIndex = 1
 		} else if i < TotalProps/4*3 {
-			Props1 = append(Props3, p)
+			PropsIndex = 2
 		} else {
-			Props1 = append(Props4, p)
+			PropsIndex = 3
 		}
+    Props[PropsIndex] = append(Props[PropsIndex], p)
 	}
 
-	fmt.Println("TotalProps " + strconv.Itoa(TotalProps))
-	fmt.Println("Props1" + strconv.Itoa(len(Props1)))
-	fmt.Println("Props2" + strconv.Itoa(len(Props2)))
-	fmt.Println("Props3" + strconv.Itoa(len(Props3)))
-	fmt.Println("Props4" + strconv.Itoa(len(Props4)))
+  fmt.Printf("Props 1: %d %d %d %d", len(Props[0]), len(Props[1]), len(Props[2]), len(Props[3]))  
 
-	// Test 4 - Filtering
-	var FilteredProperties []Property
-	FilteredProperties = MinCostFilter(properties, 40000)
-	FilteredProperties = PretentiousFilter(FilteredProperties)
-	FilteredProperties = NthRecordFilter(FilteredProperties, 10)
-
-	fmt.Println("Filtered Properties List:")
-
-	for _, p := range FilteredProperties {
-		fmt.Println(p.PropertyInfo())
-	}
-
-	fmt.Printf("\n# Properties (unfiltered): %d", len(properties))
-	fmt.Printf("\n# Properties (filtered): %d", len(FilteredProperties))
+  for _, p := range Props {
+    
+    go func() {
+      p = MinCostFilter(p, 40000)
+      p = PretentiousFilter(p)
+      p = NthRecordFilter(p, 10)
+      props := append(<-PropBuffer, p...)
+      PropBuffer <- props
+    }()
+  }
+  
+  go func() {
+    fmt.Printf("Total props: %d", len(<-PropBuffer))
+  }()
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
