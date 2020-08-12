@@ -104,7 +104,9 @@ func main() {
             if duplicate == 0 {
               properties = append(properties, p)
             } else {
-              //Keeping the 'last encountered record' 
+              // Test 1 criteria: 
+              //. Keeping the 'last encountered record' with
+              //. duplicates
               properties[duplicate] = p
             }
           }
