@@ -100,12 +100,13 @@ func main() {
           // only valid properties are added to list
           if p.IsValid() { 
             duplicate := p.dupeCheck(properties)
-            
-            if duplicate == 0 {
-              properties = append(properties, p)
+            // Test 3 - no instances of duplicate entered at all
+            // Removing found duplicates
+            if duplicate != 0 {
+              properties[duplicate] = properties[len(properties)-1]
+              properties = properties[:len(properties)-1]
             } else {
-              //Test 2 - keeping the 'first encountered record' 
-              continue
+              properties = append(properties, p)
             }
           }
         }
