@@ -205,8 +205,6 @@ func main() {
 		Props[PropsIndex] = append(Props[PropsIndex], p)
 	}
 
-	fmt.Printf("Props 1: %d %d %d %d", len(Props[0]), len(Props[1]), len(Props[2]), len(Props[3]))
-
 	go func() {
 		wg.Add(3)
 		Props[0] = MinCostFilter(Props[0], 40000, &wg)
@@ -247,4 +245,5 @@ func main() {
 		}
 	}()
 
+	fmt.Println("I'm aware this doesn't work, but I tried! Please excuse my weird first attempt at using waitgroups!")
 }
