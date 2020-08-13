@@ -8,8 +8,10 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 )
 
+// InputLocation - location of data input file
 const InputLocation = "./properties.txt"
 
 // Property struct stores property valuation data
@@ -80,7 +82,9 @@ func (p Property) DupeCheck(properties []Property) int {
 // Test 4.1 - Filtering out cheap properties
 // Takes lower limit and returns an array of properties at or above
 //  that value
-func MinCostFilter(properties []Property, p min int) []Property {
+func MinCostFilter(properties []Property, min int, wg *sync.WaitGroup) []Property {
+	defer wg.Done()
+
 	var FilteredList []Property
 	for _, p := range properties {
 		if p.value >= min {
@@ -93,7 +97,9 @@ func MinCostFilter(properties []Property, p min int) []Property {
 // PretentiousFilter function
 // Test 4.2 - Filtering out pretentious properties
 // Removes properties from list whose addresses include AVE, CRES, or PL
-func PretentiousFilter(properties []Property) []Property {
+func PretentiousFilter(properties []Property, wg *sync.WaitGroup) []Property {
+	defer wg.Done()
+
 	var FilteredList []Property
 
 	for _, p := range properties {
@@ -116,7 +122,9 @@ func PretentiousFilter(properties []Property) []Property {
 // NthRecordFilter function
 // Test 4.3 - Filtering out every 10th Property
 // Removes every 10th property from list
-func NthRecordFilter(properties []Property, n int) []Property {
+func NthRecordFilter(properties []Property, n int, wg *sync.WaitGroup) []Property {
+	defer wg.Done()
+
 	var FilteredList []Property
 	for i, p := range properties {
 		if i%n != 0 {
@@ -172,8 +180,11 @@ func main() {
 	}
 
 	// Test 4 - Extra Credit - running four goroutines concurrently
+	var wg sync.WaitGroup
 
-	var PropBuffer = make(chan []Property)
+	//Tried to do some waitgroup things here, but got all mixed up.
+	// Does not work, but leaving my work for reference.
+	// I'll admit, I'm not too used to multi-threaded applications!
 
 	// Splitting array into fourths
 	TotalProps := len(properties)
@@ -196,19 +207,44 @@ func main() {
 
 	fmt.Printf("Props 1: %d %d %d %d", len(Props[0]), len(Props[1]), len(Props[2]), len(Props[3]))
 
-	for _, p := range Props {
-
-		go func() {
-			p = MinCostFilter(p, 40000)
-			p = PretentiousFilter(p)
-			p = NthRecordFilter(p, 10)
-			props := append(<-PropBuffer, p...)
-			PropBuffer <- props
-		}()
-	}
+	go func() {
+		wg.Add(3)
+		Props[0] = MinCostFilter(Props[0], 40000, &wg)
+		Props[0] = PretentiousFilter(Props[0], &wg)
+		Props[0] = NthRecordFilter(Props[0], 10, &wg)
+	}()
 
 	go func() {
-		fmt.Printf("Total props: %d", len(<-PropBuffer))
+		wg.Add(3)
+		Props[1] = MinCostFilter(Props[1], 40000, &wg)
+		Props[1] = PretentiousFilter(Props[1], &wg)
+		Props[1] = NthRecordFilter(Props[1], 10, &wg)
+	}()
+
+	go func() {
+		wg.Add(3)
+		Props[2] = MinCostFilter(Props[2], 40000, &wg)
+		Props[2] = PretentiousFilter(Props[2], &wg)
+		Props[2] = NthRecordFilter(Props[2], 10, &wg)
+	}()
+
+	go func() {
+		wg.Add(3)
+		Props[3] = MinCostFilter(Props[3], 40000, &wg)
+		Props[3] = PretentiousFilter(Props[3], &wg)
+		Props[3] = NthRecordFilter(Props[3], 10, &wg)
+	}()
+
+	wg.Wait()
+
+	go func() {
+		var allProps []Property
+		for _, props := range Props {
+			allProps = append(allProps, props...)
+		}
+		for _, p := range allProps {
+			fmt.Println(p.PropertyInfo())
+		}
 	}()
 
 }
