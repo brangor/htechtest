@@ -116,13 +116,14 @@ func main() {
 		}
 	}
 
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
 	for _, p := range properties {
 		fmt.Println(p.PropertyInfo())
 	}
 
 	fmt.Printf("\nTotal properties: %d", len(properties))
 
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
 }
