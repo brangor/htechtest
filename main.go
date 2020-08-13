@@ -102,7 +102,7 @@ func main() {
 
 			// only valid properties are added to list
 			if p.IsValid() {
-				duplicate := p.dupeCheck(properties)
+				duplicate := p.DupeCheck(properties)
 				// Test 3 - no instances of duplicate entered at all
 				// Removing found duplicates
 				if duplicate != 0 {
